@@ -1,5 +1,5 @@
 """
-AlexNet CIFAR10
+ResNet CIFAR10
 Auther: SPTAU
 Date: September 2022
 """
@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.optim as optim
-from AlexNet_model import AlexNet_CIFAR10
+from ResNet_CIFAR10_model import ResNet110
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets
@@ -26,7 +26,7 @@ from utils.CIFAR10_tools import get_CIFAR10_mean_std  # noqa: E402
 
 def parse_args():
     """PARAMETERS"""
-    parser = argparse.ArgumentParser(description="AlexNet CIFAR10 Training")
+    parser = argparse.ArgumentParser(description="ResNet CIFAR10 Training")
     parser.add_argument("--batch_size", type=int, default=32, help="batch size in training")
     parser.add_argument("--num_epochs", type=int, default=20, help="epochs in training")
     parser.add_argument("--lr", type=float, default=0.01, help="learning rate")
@@ -39,7 +39,7 @@ def main():
     ROOT_DIR = os.getcwd()
     DATASET_DIR = os.path.join(ROOT_DIR, "dataset", "CIFAR10")
 
-    writer = SummaryWriter("./AlexNet/CIFAR10/runs")
+    writer = SummaryWriter("./ResNet/CIFAR10/runs")
 
     CIFAR10_mean, CIFAR10_std = get_CIFAR10_mean_std(DATASET_DIR)
 
@@ -62,7 +62,7 @@ def main():
     eval_loader = DataLoader(eval_dataset, batch_size=args.batch_size, shuffle=True, num_workers=2, pin_memory=True)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=True, num_workers=2, pin_memory=True)
 
-    model = AlexNet_CIFAR10()
+    model = ResNet110()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
@@ -132,7 +132,7 @@ def main():
         )
 
     print("Training process has finished. Saving trained model.")
-    torch.save(model.state_dict(), "./AlexNet/CIFAR10/AlexNet_CIFAR10.pth")
+    torch.save(model.state_dict(), "./ResNet/CIFAR10/ResNet_CIFAR10.pth")
 
     print("------Starting testing------")
     testing_temp_loss, testing_temp_correct = 0, 0
@@ -159,7 +159,7 @@ def main():
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Loss")
     ax.legend(["train_loss", "eval_loss"])
-    plt.savefig("./AlexNet/CIFAR10/AlexNet_CIFAR10_loss.png")
+    plt.savefig("./ResNet/CIFAR10/ResNet_CIFAR10_loss.png")
     plt.show()
 
     fig, ax = plt.subplots()
@@ -167,7 +167,7 @@ def main():
     ax.set_xlabel("Epoch")
     ax.set_ylabel("acc")
     ax.legend(["train_acc", "eval_acc"])
-    plt.savefig("./AlexNet/CIFAR10/AlexNet_CIFAR10_acc.png")
+    plt.savefig("./ResNet/CIFAR10/ResNet_CIFAR10_acc.png")
     plt.show()
 
     fig, axs = plt.subplots(nrows=3, ncols=3)
@@ -182,7 +182,7 @@ def main():
             ax.imshow(img)
             ax.set_title("truth:{}\npredict:{}".format(label, predict))
             ax.axis("off")
-    plt.savefig("./AlexNet/CIFAR10/AlexNet_CIFAR10_test.png")
+    plt.savefig("./ResNet/CIFAR10/ResNet_CIFAR10_test.png")
     plt.show()
 
 

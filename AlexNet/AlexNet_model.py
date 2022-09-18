@@ -1,9 +1,11 @@
 """
+AlexNet model
 Auther: SPTAU
+Date: September 2022
 """
 import torch.nn as nn
 
-__all__ = ["AlexNet", "AlexNet_Paper"]
+__all__ = ["AlexNet", "AlexNet_Paper", "AlexNet_CIFAR10"]
 
 
 class AlexNet(nn.Module):
@@ -73,7 +75,6 @@ class AlexNet(nn.Module):
         self.fc3 = nn.Sequential(
             # transforming (batch_size * 4096) to (batch_size * num_classes)
             nn.Linear(4096, num_classes),
-            nn.Softmax(dim=1),
         )
 
     def forward(self, x):
@@ -229,9 +230,8 @@ class AlexNet_CIFAR10(nn.Module):
             nn.Dropout(p=0.5),
         )
         self.fc3 = nn.Sequential(
-            # transforming (batch_size * 4096) to (batch_size * num_classes)
+            # transforming (batch_size * 4096) to (batch_size * 10)
             nn.Linear(4096, 10),
-            nn.Softmax(dim=1),
         )
 
     def forward(self, x):
