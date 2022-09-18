@@ -7,7 +7,7 @@ from torchvision import transforms as T
 __all__ = ["get_CIFAR10_mean_std"]
 
 
-def get_CIFAR10_mean_std(dataset_dir) -> tuple(Tensor, Tensor):
+def get_CIFAR10_mean_std(dataset_dir: str) -> Tensor:
     """
 
 
@@ -28,6 +28,7 @@ def get_CIFAR10_mean_std(dataset_dir) -> tuple(Tensor, Tensor):
         channels_sum += torch.mean(data, dim=[0, 2, 3])  # 剩下通道这个维度
         channels_squared_sum += torch.mean(data**2, dim=[0, 2, 3])
         num_batches += 1
+        torch.max(data)
 
     mean = channels_sum / num_batches
     std = (channels_squared_sum / num_batches - mean**2) ** 0.5
