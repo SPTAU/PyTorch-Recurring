@@ -12,7 +12,7 @@ from torch import Tensor
 __all__ = ["ResNet18", "ResNet34", "ResNet50", "ResNet101", "ResNet152"]
 
 
-class BasicBlock(nn.Module):
+class _BasicBlock(nn.Module):
     expansion: int = 1
 
     def __init__(
@@ -56,7 +56,7 @@ class BasicBlock(nn.Module):
         return out
 
 
-class Bottleneck(nn.Module):
+class _Bottleneck(nn.Module):
     expansion: int = 4
 
     def __init__(
@@ -109,7 +109,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block: Type[Union[BasicBlock, Bottleneck]], num_block: List[int], num_classes: int = 1000) -> None:
+    def __init__(self, block: Type[Union[_BasicBlock, _Bottleneck]], num_blocks: List[int], num_classes: int = 1000) -> None:
         super().__init__()
         self.in_channel = 64
         # transforming (batch_size * 224 * 224 * input_channel) to (batch_size * 112 * 112 * 64)
@@ -123,20 +123,20 @@ class ResNet(nn.Module):
         # floor(((112 - 3 + 2 * 1) / 2) + 1) => floor(56.5) => floor(56)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         # transforming (batch_size * 56 * 56 * 64) to (batch_size * 56 * 56 * (64 * block.expansion))
-        self.conv2_x = self._make_layer(block, 64, num_block[0], stride=1)
+        self.conv2_x = self._make_layer(block, 64, num_blocks[0], stride=1)
         # transforming (batch_size * 56 * 56 * (64 * block.expansion)) to (batch_size * 28 * 28 * (128 * block.expansion))
-        self.conv3_x = self._make_layer(block, 128, num_block[1], stride=2)
+        self.conv3_x = self._make_layer(block, 128, num_blocks[1], stride=2)
         # transforming (batch_size * 28 * 28 * (128 * block.expansion)) to (batch_size * 14 * 14 * (256 * block.expansion))
-        self.conv4_x = self._make_layer(block, 256, num_block[2], stride=2)
+        self.conv4_x = self._make_layer(block, 256, num_blocks[2], stride=2)
         # transforming (batch_size * 14 * 14 * (256 * block.expansion)) to (batch_size * 7 * 7 * (512 * block.expansion))
-        self.conv5_x = self._make_layer(block, 512, num_block[3], stride=2)
+        self.conv5_x = self._make_layer(block, 512, num_blocks[3], stride=2)
         # transforming (batch_size * 7 * 7 * (512 * block.expansion)) to (batch_size * 1 * 1 * (512 * block.expansion))
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))  # 不知道为什么是这个东西  每个通道取最大值
         # transforming (batch_size * 2048) to (batch_size * num_classes)
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
     def _make_layer(
-        self, block: Type[Union[BasicBlock, Bottleneck]], out_channel: int, num_blocks: int, stride: int = 1
+        self, block: Type[Union[_BasicBlock, _Bottleneck]], out_channel: int, num_blocks: int, stride: int = 1
     ) -> nn.Sequential:
         downsample = None
         if stride != 1:  # 判断哪个layer
@@ -167,20 +167,20 @@ class ResNet(nn.Module):
 
 
 def ResNet18() -> ResNet:
-    return ResNet(BasicBlock, [2, 2, 2, 2])
+    return ResNet(_BasicBlock, [2, 2, 2, 2])
 
 
 def ResNet34() -> ResNet:
-    return ResNet(BasicBlock, [3, 4, 6, 3])
+    return ResNet(_BasicBlock, [3, 4, 6, 3])
 
 
 def ResNet50() -> ResNet:
-    return ResNet(Bottleneck, [3, 4, 6, 3])
+    return ResNet(_Bottleneck, [3, 4, 6, 3])
 
 
 def ResNet101() -> ResNet:
-    return ResNet(Bottleneck, [3, 4, 23, 3])
+    return ResNet(_Bottleneck, [3, 4, 23, 3])
 
 
 def ResNet152() -> ResNet:
-    return ResNet(Bottleneck, [3, 8, 36, 3])
+    return ResNet(_Bottleneck, [3, 8, 36, 3])

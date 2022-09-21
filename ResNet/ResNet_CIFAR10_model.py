@@ -12,7 +12,7 @@ from torch import Tensor
 __all__ = ["ResNet20", "ResNet32", "ResNet44", "ResNet56", "ResNet110", "ResNet1202"]
 
 
-class Block(nn.Module):
+class _Block(nn.Module):
     expansion: int = 1
 
     def __init__(
@@ -57,7 +57,7 @@ class Block(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block: Block, num_block: List[int], num_classes: int = 10) -> None:
+    def __init__(self, block: _Block, num_blocks: List[int], num_classes: int = 10) -> None:
         super().__init__()
         self.in_channel = 16
         # transforming (batch_size * 32 * 32 * input_channel) to (batch_size * 32 * 32 * 16)
@@ -68,11 +68,11 @@ class ResNet(nn.Module):
             nn.ReLU(inplace=True),
         )
         # transforming (batch_size * 32 * 32 * 16) to (batch_size * 32 * 32 * 16)
-        self.conv2_x = self._make_layer(block, 16, num_block, stride=1)
+        self.conv2_x = self._make_layer(block, 16, num_blocks, stride=1)
         # transforming (batch_size * 32 * 32 * 16) to (batch_size * 16 * 16 * 32)
-        self.conv3_x = self._make_layer(block, 32, num_block, stride=2)
+        self.conv3_x = self._make_layer(block, 32, num_blocks, stride=2)
         # transforming (batch_size * 16 * 16 * 16) to (batch_size * 8 * 8 * 64)
-        self.conv4_x = self._make_layer(block, 64, num_block, stride=2)
+        self.conv4_x = self._make_layer(block, 64, num_blocks, stride=2)
         # transforming (batch_size * 8 * 8 * 64) to (batch_size * 1 * 1 * 64)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         # transforming (batch_size * 64) to (batch_size * num_classes)
@@ -85,7 +85,7 @@ class ResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-    def _make_layer(self, block: Block, out_channel: int, num_blocks: int, stride: int = 1) -> nn.Sequential:
+    def _make_layer(self, block: _Block, out_channel: int, num_blocks: int, stride: int = 1) -> nn.Sequential:
         downsample = None
         if stride != 1:
             downsample = nn.Sequential(
@@ -112,24 +112,24 @@ class ResNet(nn.Module):
 
 
 def ResNet20() -> ResNet:
-    return ResNet(Block, 3)
+    return ResNet(_Block, 3)
 
 
 def ResNet32() -> ResNet:
-    return ResNet(Block, 5)
+    return ResNet(_Block, 5)
 
 
 def ResNet44() -> ResNet:
-    return ResNet(Block, 7)
+    return ResNet(_Block, 7)
 
 
 def ResNet56() -> ResNet:
-    return ResNet(Block, 9)
+    return ResNet(_Block, 9)
 
 
 def ResNet110() -> ResNet:
-    return ResNet(Block, 18)
+    return ResNet(_Block, 18)
 
 
 def ResNet1202() -> ResNet:
-    return ResNet(Block, 200)
+    return ResNet(_Block, 200)
