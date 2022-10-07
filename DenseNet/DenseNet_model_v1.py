@@ -18,6 +18,8 @@ class _DenseLayer(nn.Module):
         super().__init__()
         self.bn1 = nn.BatchNorm2d(num_input_features)
         self.relu1 = nn.ReLU(inplace=True)
+        # transforming (batch_size * 32 * 32 * input_channel) to (batch_size * 32 * 32 * 16)
+        # floor(((32 - 3 + 2 * 1) / 1) + 1) => floor(112.5) => floor(112)
         self.conv1 = nn.Conv2d(num_input_features, bottleneck_size * growth_rate, kernel_size=1, stride=1, bias=False)
 
         self.bn2 = nn.BatchNorm2d(bottleneck_size * growth_rate)
@@ -46,6 +48,8 @@ class _Transition(nn.Module):
         self.Conv = nn.Sequential(
             nn.BatchNorm2d(num_input_features),
             nn.ReLU(inplace=True),
+            # transforming (batch_size * 32 * 32 * input_channel) to (batch_size * 32 * 32 * 16)
+            # floor(((32 - 3 + 2 * 1) / 1) + 1) => floor(112.5) => floor(112)
             nn.Conv2d(num_input_features, num_output_features, kernel_size=1, stride=1, bias=False),
         )
         self.AvgPool = nn.AvgPool2d(kernel_size=2, stride=2)
@@ -66,36 +70,49 @@ class DenseNet(nn.Module):
         num_classes: int = 1000,
     ) -> None:
         super().__init__()
+        # transforming (batch_size * 224 * 224 * input_channel) to (batch_size * 112 * 112 * 64)
+        # floor(((224 - 7 + 2 * 3) / 2) + 1) => floor(112.5) => floor(112)
         self.Conv = nn.Sequential(
             nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False),
             nn.BatchNorm2d(num_init_features),
             nn.ReLU(inplace=True),
         )
+        # transforming (batch_size * 112 * 112 * 64) to (batch_size * 56 * 56 * 64)
+        # floor(((112 - 3 + 2 * 1) / 2) + 1) => floor(56.5) => floor(56)
         self.MaxPool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         num_input_features = num_init_features
+        # transforming (batch_size * 56 * 56 * in_channel) to (batch_size * 56 * 56 * (in_channel + num_layers[0] * growth_rate))
         self.DenseBlock1 = self._make_DenseBlock(growth_rate, num_layers[0], num_input_features, drop_rate)
         num_input_features += num_layers[0] * growth_rate
 
+        # transforming (batch_size * 56 * 56 * in_channel) to (batch_size * 28 * 28 * (in_channel // 2))
         self.Transition1 = _Transition(num_input_features, num_input_features // 2)
         num_input_features = num_input_features // 2
 
+        # transforming (batch_size * 28 * 28 * in_channel) to (batch_size * 28 * 28 * (in_channel + num_layers[1] * growth_rate))
         self.DenseBlock2 = self._make_DenseBlock(growth_rate, num_layers[1], num_input_features, drop_rate)
         num_input_features += num_layers[1] * growth_rate
 
+        # transforming (batch_size * 28 * 28 * in_channel) to (batch_size * 14 * 14 * (in_channel // 2))
         self.Transition2 = _Transition(num_input_features, num_input_features // 2)
         num_input_features = num_input_features // 2
 
+        # transforming (batch_size * 14 * 14 * in_channel) to (batch_size * 14 * 14 * (in_channel + num_layers[2] * growth_rate))
         self.DenseBlock3 = self._make_DenseBlock(growth_rate, num_layers[2], num_input_features, drop_rate)
         num_input_features += num_layers[2] * growth_rate
 
+        # transforming (batch_size * 14 * 14 * in_channel) to (batch_size * 7 * 7 * (in_channel // 2))
         self.Transition3 = _Transition(num_input_features, num_input_features // 2)
         num_input_features = num_input_features // 2
 
+        # transforming (batch_size * 7 * 7 * in_channel) to (batch_size * 7 * 7 * (in_channel + num_layers[3] * growth_rate))
         self.DenseBlock4 = self._make_DenseBlock(growth_rate, num_layers[3], num_input_features, drop_rate)
         num_input_features += num_layers[3] * growth_rate
 
+        # transforming (batch_size * 7 * 7 * in_channel) to (batch_size * 1 * 1 * in_channel)
         self.GlobleAvgPool = nn.AdaptiveAvgPool2d((1, 1))
+        # transforming (batch_size * 1 * 1 * in_channel) to (batch_size * in_channel)
         self.FC = nn.Linear(num_input_features, num_classes)
 
     def _make_DenseBlock(self, growth_rate: int, num_layers: int, num_input_features: int, drop_rate: int) -> nn.Sequential:

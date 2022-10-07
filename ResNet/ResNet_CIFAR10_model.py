@@ -71,7 +71,7 @@ class ResNet(nn.Module):
         self.conv2_x = self._make_layer(block, 16, num_blocks, stride=1)
         # transforming (batch_size * 32 * 32 * 16) to (batch_size * 16 * 16 * 32)
         self.conv3_x = self._make_layer(block, 32, num_blocks, stride=2)
-        # transforming (batch_size * 16 * 16 * 16) to (batch_size * 8 * 8 * 64)
+        # transforming (batch_size * 16 * 16 * 32) to (batch_size * 8 * 8 * 64)
         self.conv4_x = self._make_layer(block, 64, num_blocks, stride=2)
         # transforming (batch_size * 8 * 8 * 64) to (batch_size * 1 * 1 * 64)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
